@@ -1658,7 +1658,7 @@ class Laser_mapping
         //printf_line;
         return 1;
     }
-
+    // 单独的一个std线程, 整个程序的入口
     void process()
     {
         double first_time_stamp = -1;
