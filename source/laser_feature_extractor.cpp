@@ -34,11 +34,22 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+/*
+    scanRegistration
+    主要对原始数据进行坏点剔除、特征提取。
+        - 获取两类特征（coners特征和surface特征）
+        - 发布三组数据（/pc2_coners、/pc2_surface、/pc2_full）
+        - 坏点：边缘点、强度过大/过小的点、入射角过大（Π）/过小（0）的点，藏在物体后面的点
+        - 偏转角：雷达射线和X轴的夹角，通过偏转角大小可以判断是否接近边缘
+        - 入射角：雷达射线和测量点周围平面的夹角
+*/
+
 #include "laser_feature_extractor.hpp"
 
 int main( int argc, char **argv )
 {
-    ros::init( argc, argv, "scanRegistration" );
+    ros::init( argc, argv, "scanRegistration" );    // 注册scanRegistration节点
+    
     Laser_feature laser_feature;
 
     ros::spin();

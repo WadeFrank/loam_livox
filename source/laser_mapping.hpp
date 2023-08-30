@@ -77,7 +77,7 @@
 #define PUB_DEBUG_INFO 0
 #define IF_PUBLISH_SURFACE_AND_CORNER_PTS 0
 
-int g_if_undistore = 0;
+int g_if_undistore = 0; // 0: 分段处理； 1： 线性插值； 默认为0
 
 int    if_motion_deblur = 0;
 double history_add_t_step = 0.00;
@@ -1658,6 +1658,7 @@ class Laser_mapping
         //printf_line;
         return 1;
     }
+    
     // 单独的一个std线程, 整个程序的入口
     void process()
     {

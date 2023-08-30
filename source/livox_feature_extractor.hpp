@@ -117,18 +117,18 @@ class Livox_laser
 
     struct Pt_infos
     {
-        int   pt_type = e_pt_normal;
-        int   pt_label = e_label_unlabeled;
-        int   idx = 0.f;
-        float raw_intensity = 0.f;
-        float time_stamp = 0.0;
-        float polar_angle = 0.f;
-        int   polar_direction = 0;
-        float polar_dis_sq2 = 0.f;
-        float depth_sq2 = 0.f;
-        float curvature = 0.0;
-        float view_angle = 0.0;
-        float sigma = 0.0;
+        int   pt_type = e_pt_normal;            //
+        int   pt_label = e_label_unlabeled;     //
+        int   idx = 0.f;                        //
+        float raw_intensity = 0.f;              //
+        float time_stamp = 0.0;                 //
+        float polar_angle = 0.f;                //
+        int   polar_direction = 0;              //
+        float polar_dis_sq2 = 0.f;              //
+        float depth_sq2 = 0.f;                  //
+        float curvature = 0.0;                  //
+        float view_angle = 0.0;                 //
+        float sigma = 0.0;                      //
         Eigen::Matrix< float, 2, 1 > pt_2d_img; // project to X==1 plane
     };
 
@@ -138,23 +138,23 @@ class Livox_laser
     // E_intensity_type default_return_intensity_type = e_I_curvature;
     // E_intensity_type default_return_intensity_type = e_I_view_angle;
 
-    int   pcl_data_save_index = 0;
+    int   pcl_data_save_index = 0;              // PCD文件保存计数
 
-    float max_fov = 17; // Edge of circle to main axis
+    float max_fov = 17;                         // Edge of circle to main axis
     float m_max_edge_polar_pos = 0;
-    float m_time_internal_pts = 1.0e-5; // 10us = 1e-5
-    float m_cx = 0;
-    float m_cy = 0;
-    int   m_if_save_pcd_file = 0;
-    int   m_input_points_size;
-    double m_first_receive_time = -1;
-    double m_current_time;
-    double m_last_maximum_time_stamp;
-    float thr_corner_curvature = 0.05;
-    float thr_surface_curvature = 0.01;
-    float minimum_view_angle = 10;
-    std::vector< Pt_infos >  m_pts_info_vec;
-    std::vector< PointType > m_raw_pts_vec;
+    float m_time_internal_pts = 1.0e-5;         // 10us = 1e-5
+    float m_cx = 0;                             //
+    float m_cy = 0;                             //
+    int   m_if_save_pcd_file = 0;               // 是否将每一帧点云保存为PCD文件
+    int   m_input_points_size;                  // 
+    double m_first_receive_time = -1;           //
+    double m_current_time;                      //
+    double m_last_maximum_time_stamp;           //
+    float thr_corner_curvature = 0.05;          //
+    float thr_surface_curvature = 0.01;         //
+    float minimum_view_angle = 10;              //
+    std::vector< Pt_infos >  m_pts_info_vec;    // 用于保存原始点云的信息
+    std::vector< PointType > m_raw_pts_vec;     // 用于保存原始点云
 #if USE_HASH
     std::unordered_map< PointType, Pt_infos *, Pt_hasher, Pt_compare >           m_map_pt_idx; // using hash_map
     std::unordered_map< PointType, Pt_infos *, Pt_hasher, Pt_compare >::iterator m_map_pt_idx_it;
@@ -358,11 +358,12 @@ class Livox_laser
     }
 
     // compute curvature and view angle
+    // 计算曲率和视角
     void compute_features()
     {
         unsigned int pts_size = m_raw_pts_vec.size();
-        size_t       curvature_ssd_size = 2;
-        int          critical_rm_point = e_pt_000 | e_pt_nan;
+        size_t       curvature_ssd_size = 2;                            // 邻接数
+        int          critical_rm_point = e_pt_000 | e_pt_nan;           
         float        neighbor_accumulate_xyz[ 3 ] = { 0.0, 0.0, 0.0 };
 
         for ( size_t idx = curvature_ssd_size; idx < pts_size - curvature_ssd_size; idx++ )
@@ -454,11 +455,12 @@ class Livox_laser
         }
     }
 
+    // livox雷达的视野更像一个相机，将其投影到深度图，更容易处理。
     template < typename T >
     int projection_scan_3d_2d( pcl::PointCloud< T > &laserCloudIn, std::vector< float > &scan_id_index )
     {
 
-        unsigned int pts_size = laserCloudIn.size();
+        unsigned int pts_size = laserCloudIn.size();    // pts_size用于记录原始点云的点数
         m_pts_info_vec.clear();
         m_pts_info_vec.resize( pts_size );
         m_raw_pts_vec.resize( pts_size );
@@ -471,6 +473,7 @@ class Livox_laser
 
         m_input_points_size = 0;
 
+        // 遍历整个点云
         for ( unsigned int idx = 0; idx < pts_size; idx++ )
         {
             m_raw_pts_vec[ idx ] = laserCloudIn.points[ idx ];
@@ -718,9 +721,11 @@ class Livox_laser
         laserCloudScans= res_laser_cloud_scan;
     }
 
+    // 提取Livox特征点
     template < typename T >
     std::vector< pcl::PointCloud< pcl::PointXYZI > > extract_laser_features( pcl::PointCloud< T > &laserCloudIn, double time_stamp = -1 )
     {
+        // 断言，表达式为真则继续进行，否则报错
         assert(time_stamp >= 0.0);
         if(time_stamp <= 0.0000001 || (time_stamp < m_last_maximum_time_stamp) ) // old firmware, without timestamp
         {
@@ -743,6 +748,7 @@ class Livox_laser
         m_pts_info_vec.clear();
         m_raw_pts_vec.clear();
         //printf_line;
+        // 保存PCD文件
         if ( m_if_save_pcd_file )
         {
             stringstream ss;
@@ -752,15 +758,16 @@ class Livox_laser
             pcl::io::savePCDFileASCII( ss.str(), laserCloudIn );
         }
 
-        int clutter_size = projection_scan_3d_2d( laserCloudIn, scan_id_index );
-        compute_features();
+        int clutter_size = projection_scan_3d_2d( laserCloudIn, scan_id_index );    // 将一个scan的点云“按点云延伸的拐点”分成多个花瓣点云集合，返回一个scan的花瓣数
+        compute_features();                                                         // 进行特征点提取，分类为边缘点和平面点
+        // 如果返回的花瓣数为0
         if ( clutter_size == 0 )
         {
             return laserCloudScans;
         }
         else
         {
-            split_laser_scan( clutter_size, laserCloudIn, scan_id_index, laserCloudScans );
+            split_laser_scan( clutter_size, laserCloudIn, scan_id_index, laserCloudScans ); // 为了RVIZ显示，将点云分成不同的颜色
             return laserCloudScans;
         }
     }
